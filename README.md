@@ -1,42 +1,73 @@
-# UAS-OCR 
-# Optical Character Recognition (OCR) with VLM using Gemma 3 12B
+# OCR Plat Nomor Kendaraan dengan VLM (Gemma 3 12B)
 
-Proyek ini bertujuan untuk mengekstrak teks dari plat nomor kendaraan menggunakan pendekatan Visual Language Model (VLM). Model yang digunakan adalah `google/gemma-3-12b`, dijalankan melalui LM Studio dan diintegrasikan dengan Python. Selain melakukan prediksi, proyek ini juga mengevaluasi akurasi menggunakan Character Error Rate (CER).
+Proyek ini bertujuan untuk membaca teks dari plat nomor kendaraan menggunakan pendekatan Visual Language Model (VLM) yang dijalankan melalui LM Studio dan diintegrasikan dengan Python.
 
-## 📁 Struktur Proyek
+---
 
+## 🔍 Konsep Utama
 
-## 🚀 Cara Menjalankan
+### Apa itu VLM?
 
-### 1. Persiapan Awal
-- Unduh dan install [LM Studio](https://lmstudio.ai)
-- Aktifkan opsi **Enable local server** di LM Studio
-- Pastikan model `google/gemma-3-12b` telah tersedia dan berjalan di LM Studio
+Visual Language Model (VLM) adalah jenis model kecerdasan buatan multimodal yang bisa menerima input berupa gambar dan teks, lalu menghasilkan output berbasis pemahaman keduanya. Model ini digunakan untuk tugas seperti deskripsi gambar, tanya jawab visual, hingga OCR (Optical Character Recognition).
 
-### 2. Instalasi Dependensi Python
+### Mengapa VLM untuk OCR?
 
-```bash
-pip install openai pillow python-Levenshtein pandas
-What is the license plate number shown in this image? Respond only with the plate number.
-import requests
-import base64
+Berbeda dengan metode OCR tradisional yang biasanya mengandalkan model deteksi huruf secara eksplisit, VLM seperti `google/gemma-3-12b` bisa langsung memahami isi gambar dan menjawab dengan jawaban berbasis konteks visual, termasuk plat nomor.
 
-def ask_vlm(image_path):
-    with open(image_path, "rb") as img_file:
-        base64_img = base64.b64encode(img_file.read()).decode("utf-8")
+---
 
-    payload = {
-        "model": "google/gemma-3-12b",
-        "messages": [
-            {"role": "user", "content": [
-                {"type": "text", "text": "What is the license plate number shown in this image? Respond only with the plate number."},
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_img}"}}
-            ]}
-        ]
-    }
+## 🔄 Alur Kerja Proyek
 
-    response = requests.post("http://localhost:1234/v1/chat/completions", json=payload)
-    return response.json()["choices"][0]["message"]["content"]
-CER = (S + D + I) / N
-image,ground_truth,prediction,CER_score
-img001.jpg,B1234XYZ,B1234XY,0.14
+1. **Input Gambar**
+   - Gambar plat nomor dikumpulkan dalam folder `/images`
+   - Dataset dikaitkan dengan file `label.csv` berisi ground truth
+
+2. **Koneksi ke LM Studio**
+   - LM Studio dijalankan secara lokal
+   - Model `google/gemma-3-12b` digunakan
+   - Server lokal LM Studio aktif di `http://localhost:1234`
+
+3. **Inferensi (Prediksi Plat Nomor)**
+   - Gambar dikirim melalui API LM Studio bersama prompt:
+     > What is the license plate number shown in this image? Respond only with the plate number.
+   - Model membalas dengan prediksi plat nomor dalam format teks
+
+4. **Evaluasi Akurasi (CER)**
+   - Prediksi dibandingkan dengan label ground truth
+   - Dihitung Character Error Rate (CER) menggunakan rumus:
+     ```
+     CER = (S + D + I) / N
+     ```
+     Di mana:
+     - S = Substitusi karakter
+     - D = Karakter yang dihapus
+     - I = Karakter yang disisipkan
+     - N = Total karakter pada label asli
+
+5. **Penyimpanan Hasil**
+   - Hasil disimpan dalam `results.csv` dengan format:
+     ```
+     image,ground_truth,prediction,CER_score
+     ```
+
+6. **Analisis**
+   - Kasus dengan hasil baik dan buruk dianalisis untuk mengevaluasi kelemahan model
+   - Performa model dipengaruhi oleh kualitas gambar, cahaya, dan resolusi
+
+---
+
+## 💡 Catatan
+
+- Model multimodal mampu membaca plat nomor secara langsung dari gambar tanpa perlu training ulang
+- LM Studio menyediakan antarmuka lokal yang memudahkan integrasi antara Python dan model LLM/VLM
+- Proyek ini menunjukkan potensi VLM sebagai alternatif ringan dan fleksibel untuk OCR tugas ringan
+
+---
+
+## 📚 Referensi
+
+- LM Studio: https://lmstudio.ai
+- Dokumentasi image input LM Studio: https://lmstudio.ai/docs/python/llm-prediction/image-input
+- Model: [`google/gemma-3-12b`](https://huggingface.co/google/gemma-3b)
+- Evaluasi CER: via `python-Levenshtein`
+
